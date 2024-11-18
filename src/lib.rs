@@ -42,3 +42,40 @@ pub fn enable(cap: u32) {
         gl::Enable(cap);
     }
 }
+
+pub fn create_vert_frag_prog(vert: u32, frag: u32) -> Option<u32> {
+    unsafe {
+        let program = gl::CreateProgram();
+        gl::AttachShader(program, vert);
+        gl::AttachShader(program, frag);
+        gl::LinkProgram(program);
+
+        let mut is_linked = 0;
+        gl::GetProgramiv(program, gl::LINK_STATUS, &mut is_linked);
+
+        if is_linked == 0 {
+            None
+        } else {
+            Some(program)
+        }
+    }
+}
+
+pub fn use_program(program: u32) {
+    unsafe {
+        gl::UseProgram(program);
+    }
+}
+
+pub fn get_location(program: u32, uniform: &str) -> Option<i32> {
+    let uniform = std::ffi::CString::new(uniform).ok()?;
+    unsafe {
+        let location = gl::GetUniformLocation(program, uniform.as_ptr());
+
+        if location == -1 {
+            None
+        } else {
+            Some(location)
+        }
+    }
+}

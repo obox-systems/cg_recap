@@ -6,6 +6,7 @@ fn main() {
     let height = 720;
 
     let mut glfw = glfw::init_no_callbacks().unwrap();
+    glfw.window_hint(glfw::WindowHint::Resizable(false));
 
     let (mut window, _) = glfw
         .create_window(width, height, "", glfw::WindowMode::Windowed)
@@ -16,24 +17,15 @@ fn main() {
 
     let vertex_shader_source = include_str!("shaders/main.vert");
     let fragment_shader_source = include_str!("shaders/main.frag");
-    let vertex = cg_recap::create_shader(gl::VERTEX_SHADER, vertex_shader_source).unwrap();
-    let fragment = cg_recap::create_shader(gl::FRAGMENT_SHADER, fragment_shader_source).unwrap();
+    let vert = cg_recap::create_shader(gl::VERTEX_SHADER, vertex_shader_source).unwrap();
+    let frag = cg_recap::create_shader(gl::FRAGMENT_SHADER, fragment_shader_source).unwrap();
 
     let aspect = width as f32 / height as f32;
-    let projection = glm::perspective_lh(aspect, 60.0_f32.to_radians(), 0.1, 1000.0);
-    // let projection = glm::perspective(aspect, 60.0_f32.to_radians(), 0.1, 1000.0);
+    let projection = glm::perspective(aspect, 45.0_f32.to_radians(), 0.1, 1000.0);
 
-    let clip2world_loc = unsafe {
-        let program = gl::CreateProgram();
-        gl::AttachShader(program, vertex);
-        gl::AttachShader(program, fragment);
-        gl::LinkProgram(program);
-        gl::UseProgram(program);
-
-        let clip2world_name = std::ffi::CString::new("clip2world").unwrap();
-        let clip2world_loc = gl::GetUniformLocation(program, clip2world_name.as_ptr());
-        clip2world_loc
-    };
+    let program = cg_recap::create_vert_frag_prog(vert, frag).unwrap();
+    let clip2world_loc = cg_recap::get_location(program, "clip2world").unwrap();
+    cg_recap::use_program(program);
 
     let images = [
         (
@@ -85,38 +77,24 @@ fn main() {
             gl::TEXTURE_MIN_FILTER,
             gl::LINEAR_MIPMAP_LINEAR as i32,
         );
-        gl::TexParameteri(
-            gl::TEXTURE_CUBE_MAP,
-            gl::TEXTURE_WRAP_S,
-            gl::CLAMP_TO_EDGE as i32,
-        );
-        gl::TexParameteri(
-            gl::TEXTURE_CUBE_MAP,
-            gl::TEXTURE_WRAP_T,
-            gl::CLAMP_TO_EDGE as i32,
-        );
-        gl::TexParameteri(
-            gl::TEXTURE_CUBE_MAP,
-            gl::TEXTURE_WRAP_R,
-            gl::CLAMP_TO_EDGE as i32,
-        );
     }
 
     cg_recap::enable(gl::TEXTURE_CUBE_MAP_SEAMLESS);
     cg_recap::enable(gl::DEPTH_TEST);
-    
+
     while !window.should_close() {
         glfw.poll_events();
 
-        let angle = glfw.get_time() as f32 * std::f32::consts::FRAC_PI_6;
+        let angle = glfw.get_time() as f32 * std::f32::consts::FRAC_PI_8;
         let rotation = glm::rotation(angle, &glm::Vec3::y_axis());
         let mvp = projection * rotation;
         let clip2world = mvp.try_inverse().unwrap();
+
         unsafe {
             gl::UniformMatrix4fv(clip2world_loc, 1, gl::FALSE, clip2world.as_ptr());
         }
 
-        cg_recap::clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+        cg_recap::clear(gl::DEPTH_BUFFER_BIT);
         cg_recap::draw_arrays(gl::TRIANGLES, 0, 3);
         window.swap_buffers();
     }
