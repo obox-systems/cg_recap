@@ -1,3 +1,5 @@
+pub mod utils;
+
 pub fn clear(mask: u32) {
     unsafe {
         gl::Clear(mask);
@@ -34,6 +36,12 @@ pub fn create_shader(r#type: u32, src: &str) -> Option<u32> {
 pub fn draw_arrays(mode: u32, first: i32, count: i32) {
     unsafe {
         gl::DrawArrays(mode, first, count);
+    }
+}
+
+pub fn draw_elements(mode: u32, count: i32, offset: usize, r#type: u32) {
+    unsafe {
+        gl::DrawElements(mode, count, r#type, offset as *const usize as *const _);
     }
 }
 
@@ -77,5 +85,52 @@ pub fn get_location(program: u32, uniform: &str) -> Option<i32> {
         } else {
             Some(location)
         }
+    }
+}
+
+pub fn create_buffer() -> Option<u32> {
+    unsafe {
+        let mut buffer = 0;
+        gl::CreateBuffers(1, &mut buffer);
+        if buffer == 0 {
+            None
+        } else {
+            Some(buffer)
+        }
+    }
+}
+
+pub fn bind_buffer(buffer: u32, target: u32) {
+    unsafe {
+        gl::BindBuffer(target, buffer);
+    }
+}
+
+pub fn buffer_data<T: Copy>(target: u32, data: &[T], usage: u32) {
+    unsafe {
+        gl::BufferData(
+            target,
+            size_of_val(data) as isize,
+            data.as_ptr().cast(),
+            usage,
+        );
+    }
+}
+
+pub fn create_vao() -> Option<u32> {
+    unsafe {
+        let mut vao = 0;
+        gl::CreateVertexArrays(1, &mut vao);
+        if vao == 0 {
+            None
+        } else {
+            Some(vao)
+        }
+    }
+}
+
+pub fn bind_vao(vao: u32) {
+    unsafe {
+        gl::BindVertexArray(vao);
     }
 }
