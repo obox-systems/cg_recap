@@ -33,6 +33,14 @@ pub fn load_mesh(path: &str) -> Vec<(u32, i32)> {
 
         if let Some(texcoords) = mesh.texture_coords.first() {
             if let Some(texcoords) = texcoords {
+                let texcoords: Box<[_]> = texcoords
+                    .into_iter()
+                    .map(|item| russimp::Vector2D {
+                        x: item.x,
+                        y: item.y,
+                    })
+                    .collect();
+
                 let texcoord_buffer = crate::create_buffer().unwrap();
                 crate::bind_buffer(texcoord_buffer, gl::ARRAY_BUFFER);
                 crate::buffer_data(gl::ARRAY_BUFFER, &texcoords, gl::STATIC_DRAW);

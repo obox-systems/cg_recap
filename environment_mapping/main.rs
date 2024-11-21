@@ -17,8 +17,8 @@ fn main() {
 
     let vertex_shader_source = include_str!("shaders/main.vert");
     let fragment_shader_source = include_str!("shaders/main.frag");
-    let vert = cg_recap::create_shader(gl::VERTEX_SHADER, vertex_shader_source).unwrap();
-    let frag = cg_recap::create_shader(gl::FRAGMENT_SHADER, fragment_shader_source).unwrap();
+    let vert = cg_recap::compile_shader(gl::VERTEX_SHADER, vertex_shader_source).unwrap();
+    let frag = cg_recap::compile_shader(gl::FRAGMENT_SHADER, fragment_shader_source).unwrap();
     let program = cg_recap::create_vert_frag_prog(vert, frag).unwrap();
     let clip2world_loc = cg_recap::get_location(program, "clip2world").unwrap();
     cg_recap::use_program(program);

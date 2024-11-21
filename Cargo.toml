@@ -18,5 +18,5 @@ name = "environment_mapping"
 path = "environment_mapping/main.rs"
 
 [[bin]]
-name = "screen-space_reflections"
-path = "screen-space_reflections/main.rs"
+name = "cube-map_reflections"
+path = "cube-map_reflections/main.rs"
